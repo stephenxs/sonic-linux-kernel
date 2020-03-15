@@ -107,7 +107,7 @@ net-backport-ipv6-missing-route.patch
 # Trtnetlink-catch-EOPNOTSUPP-errors.patch
 # Tbridge-per-port-multicast-broadcast-flood-flags.patch
 0001-v4.19-6-Mellanox-platform-Backport-patches-for-new-M.patch
-0001-Mellanox-Add-missed-files-when-porting-from-4.9.patch
+0002-v4.19-6-Mellanox-platform-Additional-backport-for-ne.patch
 0002-config-mellanox-configuration.patch
 0003-config-mellanox-fan-configuration.patch
 0004-update-kernel-config.patch
