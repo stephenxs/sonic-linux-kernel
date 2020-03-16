@@ -106,10 +106,7 @@ net-backport-ipv6-missing-route.patch
 # Tdriver-hwmon-pmbus-ucd9200-mlnx.patch
 # Trtnetlink-catch-EOPNOTSUPP-errors.patch
 # Tbridge-per-port-multicast-broadcast-flood-flags.patch
+#
+# Mellanox patches for 4.19
 0001-v4.19-6-Mellanox-platform-Backport-patches-for-new-M.patch
-0002-v4.19-6-Mellanox-platform-Additional-backport-for-ne.patch
 0002-config-mellanox-configuration.patch
-0003-config-mellanox-fan-configuration.patch
-0004-update-kernel-config.patch
-0005-sonic-update-kernel-config-mlsxw-pci.patch
-0006-Mellanox-Adjust-configurations.patch
