@@ -111,3 +111,6 @@ net-backport-ipv6-missing-route.patch
 0001-v4.19-6-Mellanox-platform-Backport-patches-for-new-M.patch
 0002-config-mellanox-configuration.patch
 0003-mlxsw-minimal-Fix-validation-for-FW-minor-version.patch
+0004-mlxsw-core-Add-the-hottest-thermal-zone-detection.patch
+0005-hwmon-pmbus-core-Add-support-for-vid-mode-detection-.patch
+0006-platform-mellanox-mlxreg-hotplug-Use-capability-r.patch
