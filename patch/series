@@ -2,18 +2,6 @@
 # (marvel)
 # 0001-armhf-default-config-for-the-sonic-patches.patch
 # 0001-arm64-default-config-for-sonic-patches.patch
-# (mellanox)
-# 0001-i2c-mlxcpld-add-master-driver-for-Mellanox-systems.patch
-# 0002-i2c-mux-mlxcpld-add-driver-for-Mellanox-systems.patch
-# 0003-platform-mellanox-Introduce-Mellanox-hardware-platfo.patch
-# 0004-platform-x86-Introduce-support-for-Mellanox-hotplug-.patch
-# 0005-leds-add-driver-for-support-Mellanox-regmap-LEDs-for.patch
-# 0006-Mellanox-switch-drivers-changes.patch
-# 0007-hwmon-pmbus-Add-support-for-Intel-VID-protocol-VR13.patch
-# 0008-hwmon-pmbus-Add-support-for-Texas-Instruments-tps536.patch
-# 0009-platform-mellonox-introduce-mlxreg-io-driver-and-add.patch
-# 0010-config-mellanox-configuration.patch
-# 0012-platform-mellanox-mlxreg-hotplug-driver-add-check-fo.patch
 
 driver-arista-net-tg3-dma-mask-4g-sb800.patch
 driver-arista-net-tg3-disallow-broadcom-default-mac.patch
@@ -49,45 +37,6 @@ config-mitac-ly1200.patch
 config-optoe.patch
 config-inventec-d7032.patch
 config-cig-cs6436-serail_new.patch
-# (mellanox)
-# 0014-mlxsw-qsfp_sysfs-Support-CPLD-version-reading-based-.patch
-# 0015-platform-x86-mlx-platform-Add-support-for-new-msn201.patch
-# 0016-platform-mellanox-mlxreg-hotplug-add-extra-run-cycle.patch
-# 0017-platform-mellanox-add-new-OEM-system-types-to-mlx-pl.patch
-# 0018-platform-x86-mlx-platform-fix-module-aliases.patch
-# 0019-platform-x86-mlx-platform-Add-bus-detection-and-diff.patch
-# 0020-i2c-busses-Add-capabilities-to-i2c-mlxcpld.patch
-# 0021-Mellanox-backport-patchwork-from-kernels-4.17-4.19.patch
-# 0022-platform-x86-mlx-platform-backport-from-4.19.patch
-# 0023-platform-x86-mlx-platform-Add-support-for-register-a.patch
-# 0024-config-mellanox-fan-configuration.patch
-# 0026-mlxsw-qsfp_sysfs-Support-extended-port-numbers-for-S.patch
-# 0027-mlxsw-thermal-monitoring-amendments.patch
-# 0028-watchdog-mlx-wdt-introduce-watchdog-driver-for-Mella.patch
-# 0029-mlxsw-qsfp_sysfs-Support-port-numbers-initialization.patch
-# 0030-update-kernel-config.patch
-# 0031-mlxsw-Align-code-with-kernel-v-5.0.patch
-# 0032-sonic-update-kernel-config-mlsxw-pci.patch
-# 0033-hwmon-pmbus-Fix-driver-info-initialization-in-probe-.patch
-# 0034-mlxsw-thermal-disable-highest-zone-calculation.patch
-# 0035-platform-x86-mlx-platform-Add-CPLD4-register.patch
-# 0036-watchdog-mlx-wdt-kernel-upstream-and-wd-type2-change.patch
-# 0037-mlxsw-Align-code-with-kernel-v-5.1.patch
-# 0038-mlxsw-core-Add-check-for-split-port-during-thermal-z.patch
-# 0039-mlxsw-core-Prevent-reading-unsupported-slave-address.patch
-# 0040-mlxsw-core-add-support-for-Gear-Box-temperatures-in-.patch
-# 0041-mlxsw-minimal-Provide-optimization-for-I2C-bus-acces.patch
-# 0042-mlxsw-core-Skip-port-split-entries-in-hwmon-subsyste.patch
-# 0043-mellanox-platform-Backporting-Melanox-drivers-from-v.patch
-# 0044-mlxsw-minimal-Provide-optimization-for-module-number.patch
-# 0045-mlxsw-minimal-Add-validation-for-FW-version.patch
-# 0046-mlxsw-core-Extend-QSFP-EEPROM-supported-size-for-eth.patch
-# 0047-mfd-lpc-ich-extend-with-additional-chipsets-support.patch
-# 0048-mlxsw-core-Skip-thermal-zone-operations-initializati.patch
-# 0049-thermal-Fix-use-after-free-when-unregistering-therma.patch
-# 0050-mlxsw-core-Drop-creation-of-thermal-to-hwmon-sysfs-i.patch
-# 0051-mlxsw-core-Skip-thermal-zones-threshold-setting-duri.patch
-# 0052-platform-x86-mlx-platform-Add-more-detention-for-sys.patch
 # (Marvel)
 # 0042-Marvell-a385-Micron-4G-flash-support.patch
 # 0042-armhf-additional-configs.patch
