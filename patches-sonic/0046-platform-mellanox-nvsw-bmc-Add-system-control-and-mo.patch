@@ -1,4 +1,4 @@
-From 7d0f9191f8e282b28411b21fd33d166c4efafc68 Mon Sep 17 00:00:00 2001
+From 9170ba2bf9505776f6d136b520981991c6ed4837 Mon Sep 17 00:00:00 2001
 From: Vadim Pasternak <vadimp@nvidia.com>
 Date: Thu, 4 Jul 2024 23:50:27 +0300
 Subject: [PATCH] platform/mellanox: nvsw-bmc: Add system control and
@@ -21,13 +21,13 @@ Signed-off-by: Vadim Pasternak <vadimp@nvidia.com>
  .../devicetree/bindings/trivial-devices.yaml  |    5 +
  drivers/platform/mellanox/Kconfig             |   38 +
  drivers/platform/mellanox/Makefile            |    4 +
- drivers/platform/mellanox/nvsw-bmc-hid162.c   | 3310 +++++++++++++++++
+ drivers/platform/mellanox/nvsw-bmc-hid162.c   | 2773 +++++++++++++++++
  drivers/platform/mellanox/nvsw-core.c         |  693 ++++
- drivers/platform/mellanox/nvsw-host-l1.c      |  770 ++++
- drivers/platform/mellanox/nvsw-host-spc5.c    |  943 +++++
+ drivers/platform/mellanox/nvsw-host-l1.c      |  744 +++++
+ drivers/platform/mellanox/nvsw-host-spc5.c    |  943 ++++++
  drivers/platform/mellanox/nvsw-host-spc6.c    |  852 +++++
- drivers/platform/mellanox/nvsw.h              |  297 ++
- 9 files changed, 6912 insertions(+)
+ drivers/platform/mellanox/nvsw.h              |  296 ++
+ 9 files changed, 6348 insertions(+)
  create mode 100644 drivers/platform/mellanox/nvsw-bmc-hid162.c
  create mode 100644 drivers/platform/mellanox/nvsw-core.c
  create mode 100644 drivers/platform/mellanox/nvsw-host-l1.c
@@ -115,10 +115,10 @@ index e86723b44..123edaa99 100644
  obj-$(CONFIG_NVSW_SN2201) += nvsw-sn2201.o
 diff --git a/drivers/platform/mellanox/nvsw-bmc-hid162.c b/drivers/platform/mellanox/nvsw-bmc-hid162.c
 new file mode 100644
-index 000000000..3c70e2979
+index 000000000..fbc738231
 --- /dev/null
 +++ b/drivers/platform/mellanox/nvsw-bmc-hid162.c
-@@ -0,0 +1,3310 @@
+@@ -0,0 +1,2773 @@
 +// SPDX-License-Identifier: GPL-2.0+
 +/*
 + * Nvidia BMC platform driver
@@ -170,11 +170,6 @@ index 000000000..3c70e2979
 +	0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
 +};
 +
-+static int nvsw_bmc_hid185_chan2[] = {
-+	0x10, 0x11,
-+};
-+
-+
 +/* Mux configuration. */
 +static struct i2c_mux_regmap_platform_data nvsw_bmc_hid162_mux_data[] = {
 +	{
@@ -208,23 +203,6 @@ index 000000000..3c70e2979
 +		.parent = 14,
 +		.chan_ids = nvsw_bmc_hid180_chan2,
 +		.num_adaps = ARRAY_SIZE(nvsw_bmc_hid180_chan2),
-+		.sel_reg_addr = NVSW_REG_MUX2_OFFSET,
-+		.reg_size = 1,
-+	},
-+};
-+
-+static struct i2c_mux_regmap_platform_data nvsw_bmc_hid185_mux_data[] = {
-+	{
-+		.parent = 14,
-+		.chan_ids = nvsw_bmc_hid180_chan1,
-+		.num_adaps = ARRAY_SIZE(nvsw_bmc_hid180_chan1),
-+		.sel_reg_addr = NVSW_REG_MUX1_OFFSET,
-+		.reg_size = 1,
-+	},
-+	{
-+		.parent = 12,
-+		.chan_ids = nvsw_bmc_hid185_chan2,
-+		.num_adaps = ARRAY_SIZE(nvsw_bmc_hid185_chan2),
 +		.sel_reg_addr = NVSW_REG_MUX2_OFFSET,
 +		.reg_size = 1,
 +	},
@@ -805,7 +783,7 @@ index 000000000..3c70e2979
 +		.hpdev.nr = NVSW_NR_NONE,
 +	},
 +	{
-+		.label = "holder6_pg",
++		.label = "3v3_clk_pg",
 +		.reg = NVSW_REG_PG1_OFFSET,
 +		.mask = BIT(1),
 +		.hpdev.nr = NVSW_NR_NONE,
@@ -841,7 +819,7 @@ index 000000000..3c70e2979
 +		.hpdev.nr = NVSW_NR_NONE,
 +	},
 +		{
-+		.label = "holder7_pg",
++		.label = "vdrv_asic_1_2_pg",
 +		.reg = NVSW_REG_PG1_OFFSET,
 +		.mask = BIT(7),
 +		.hpdev.nr = NVSW_NR_NONE,
@@ -952,7 +930,7 @@ index 000000000..3c70e2979
 +
 +static struct mlxreg_core_data nvsw_bmc_hid180_pg4_events_items_data[] = {
 +	{
-+		.label = "smbus_alt_pwrconv_2",
++		.label = "mbus_alt_pwrconv_2",
 +		.reg = NVSW_REG_PG3_OFFSET,
 +		.mask = BIT(0),
 +		.hpdev.nr = NVSW_NR_NONE,
@@ -1159,39 +1137,21 @@ index 000000000..3c70e2979
 +		.hpdev.nr = NVSW_NR_NONE,
 +	},
 +	{
-+		.label = "5v_usb",
++		.label = "51v_usb",
 +		.reg = NVSW_REG_BRD1_OFFSET,
 +		.mask = NVSW_5V_USB_MASK,
 +		.hpdev.nr = NVSW_NR_NONE,
 +	},
 +	{
-+		.label = "holder1_alarm",
++		.label = "ssd_pg",
 +		.reg = NVSW_REG_BRD1_OFFSET,
 +		.mask = BIT(3),
 +		.hpdev.nr = NVSW_NR_NONE,
 +	},
 +	{
-+		.label = "holder2_alarm",
-+		.reg = NVSW_REG_BRD1_OFFSET,
-+		.mask = BIT(4),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+	{
-+		.label = "sgmii_pg",
-+		.reg = NVSW_REG_BRD1_OFFSET,
-+		.mask = BIT(5),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+	{
-+		.label = "ssd_pg",
-+		.reg = NVSW_REG_BRD1_OFFSET,
-+		.mask = BIT(6),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+	{
 +		.label = "leakage_aggr",
 +		.reg = NVSW_REG_BRD1_OFFSET,
-+		.mask = BIT(7),
++		.mask = BIT(4),
 +		.hpdev.nr = NVSW_NR_NONE,
 +	},
 +};
@@ -1219,27 +1179,6 @@ index 000000000..3c70e2979
 +		.label = "thermtrip_alert",
 +		.reg = NVSW_REG_BRD1_OFFSET,
 +		.mask = BIT(3),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+};
-+
-+static struct mlxreg_core_data nvsw_bmc_hid180_cpu_items_data[] = {
-+	{
-+		.label = "cpu_rst",
-+		.reg = NVSW_REG_BRD2_OFFSET,
-+		.mask = BIT(2),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+	{
-+		.label = "bios_started",
-+		.reg = NVSW_REG_BRD2_OFFSET,
-+		.mask = BIT(3),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+	{
-+		.label = "bios_ended",
-+		.reg = NVSW_REG_BRD2_OFFSET,
-+		.mask = BIT(4),
 +		.hpdev.nr = NVSW_NR_NONE,
 +	},
 +};
@@ -1437,7 +1376,7 @@ index 000000000..3c70e2979
 +		.data = nvsw_bmc_hid180_alarms_items_data,
 +		.aggr_mask = NVSW_AGGR_MASK,
 +		.reg = NVSW_REG_BRD1_OFFSET,
-+		.mask = GENMASK(7, 0),
++		.mask = GENMASK(4, 0),
 +		.count = ARRAY_SIZE(nvsw_bmc_hid180_alarms_items_data),
 +		.inversed = 0,
 +		.health = false,
@@ -1448,15 +1387,6 @@ index 000000000..3c70e2979
 +		.reg = NVSW_REG_HEALTH_OFFSET,
 +		.mask = GENMASK(3, 0),
 +		.count = ARRAY_SIZE(nvsw_bmc_hid180_alarms2_items_data),
-+		.inversed = 0,
-+		.health = false,
-+	},
-+	{
-+		.data = nvsw_bmc_hid180_cpu_items_data,
-+		.aggr_mask = NVSW_AGGR_MASK,
-+		.reg = NVSW_REG_BRD2_OFFSET,
-+		.mask = GENMASK(4, 2),
-+		.count = ARRAY_SIZE(nvsw_bmc_hid180_cpu_items_data),
 +		.inversed = 0,
 +		.health = false,
 +	},
@@ -1519,366 +1449,6 @@ index 000000000..3c70e2979
 +	.mask = NVSW_AGGR_MASK | NVSW_AGGR_MASK_COMEX,
 +	.cell_low = NVSW_REG_AGGRLO_OFFSET,
 +	.mask_low = GENMASK(6, 0),
-+	.deferred_nr = 5,
-+};
-+
-+static struct mlxreg_core_data nvsw_bmc_hid185_pg1_events_items_data[] = {
-+	{
-+		.label = "swb1_ni_smbus_alt",
-+		.reg = NVSW_REG_PG1_OFFSET,
-+		.mask = BIT(0),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+	{
-+		.label = "swb1_clk_pg",
-+		.reg = NVSW_REG_PG1_OFFSET,
-+		.mask = BIT(1),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+	{
-+		.label = "asic1_vdd_pg",
-+		.reg = NVSW_REG_PG1_OFFSET,
-+		.mask = BIT(2),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+	{
-+		.label = "asic1_dvdd_pl0_pg",
-+		.reg = NVSW_REG_PG1_OFFSET,
-+		.mask = BIT(3),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+	{
-+		.label = "asic1_dvdd_pl1_pg",
-+		.reg = NVSW_REG_PG1_OFFSET,
-+		.mask = BIT(4),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+	{
-+		.label = "asic1_hvdd_avcc_pg",
-+		.reg = NVSW_REG_PG1_OFFSET,
-+		.mask = BIT(5),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+	{
-+		.label = "swb1_1v8_vddio_pg",
-+		.reg = NVSW_REG_PG1_OFFSET,
-+		.mask = BIT(6),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+		{
-+		.label = "swb1_vdrv_pg",
-+		.reg = NVSW_REG_PG1_OFFSET,
-+		.mask = BIT(7),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+};
-+
-+static struct mlxreg_core_data nvsw_bmc_hid185_pg3_events_items_data[] = {
-+	{
-+		.label = "swb1_smbus_alt_hotswap",
-+		.reg = NVSW_REG_BRD4_OFFSET,
-+		.mask = BIT(0),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+	{
-+		.label = "swb1_3v3_pb_pg",
-+		.reg = NVSW_REG_BRD4_OFFSET,
-+		.mask = BIT(1),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+	{
-+		.label = "asic2_vdd_pg",
-+		.reg = NVSW_REG_BRD4_OFFSET,
-+		.mask = BIT(2),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+	{
-+		.label = "asic2_dvdd_pl0_pg",
-+		.reg = NVSW_REG_BRD4_OFFSET,
-+		.mask = BIT(3),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+	{
-+		.label = "asic2_dvdd_pl1_pg",
-+		.reg = NVSW_REG_BRD4_OFFSET,
-+		.mask = BIT(4),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+	{
-+		.label = "asic2_hvdd_pg",
-+		.reg = NVSW_REG_BRD4_OFFSET,
-+		.mask = BIT(5),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+	{
-+		.label = "swb1_1v8_cpld_pg",
-+		.reg = NVSW_REG_BRD4_OFFSET,
-+		.mask = BIT(6),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+};
-+
-+static struct mlxreg_core_data nvsw_bmc_hid185_pg4_events_items_data[] = {
-+	{
-+		.label = "swb2_ni_smbus_alt",
-+		.reg = NVSW_REG_PG3_OFFSET,
-+		.mask = BIT(0),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+	{
-+		.label = "swb2_clk_pg",
-+		.reg = NVSW_REG_PG3_OFFSET,
-+		.mask = BIT(1),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+	{
-+		.label = "asic3_vdd_pg",
-+		.reg = NVSW_REG_PG3_OFFSET,
-+		.mask = BIT(2),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+	{
-+		.label = "asic3_dvdd_pl0_pg",
-+		.reg = NVSW_REG_PG3_OFFSET,
-+		.mask = BIT(3),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+	{
-+		.label = "asic3_dvdd_pl1_pg",
-+		.reg = NVSW_REG_PG3_OFFSET,
-+		.mask = BIT(4),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+	{
-+		.label = "asic3_hvdd_pg",
-+		.reg = NVSW_REG_PG3_OFFSET,
-+		.mask = BIT(5),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+	{
-+		.label = "swb2_1v8_vddio_pg",
-+		.reg = NVSW_REG_PG3_OFFSET,
-+		.mask = BIT(6),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+	{
-+		.label = "swb2_vdrv_pg",
-+		.reg = NVSW_REG_PG3_OFFSET,
-+		.mask = BIT(7),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+};
-+
-+static struct mlxreg_core_data nvsw_bmc_hid185_pg5_events_items_data[] = {
-+	{
-+		.label = "swb2_smbus_alt_hotswap",
-+		.reg = NVSW_REG_PG4_OFFSET,
-+		.mask = BIT(0),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+	{
-+		.label = "swb2_3v3_pb_pg",
-+		.reg = NVSW_REG_PG4_OFFSET,
-+		.mask = BIT(1),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+	{
-+		.label = "asic4_vdd_pg",
-+		.reg = NVSW_REG_PG4_OFFSET,
-+		.mask = BIT(2),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+	{
-+		.label = "asic4_dvdd_pl0_pg",
-+		.reg = NVSW_REG_PG4_OFFSET,
-+		.mask = BIT(3),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+	{
-+		.label = "asic4_dvdd_pl1_pg",
-+		.reg = NVSW_REG_PG4_OFFSET,
-+		.mask = BIT(4),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+	{
-+		.label = "asic4_hvdd_pg",
-+		.reg = NVSW_REG_PG4_OFFSET,
-+		.mask = BIT(5),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+	{
-+		.label = "swb2_1v8_cpld_pg",
-+		.reg = NVSW_REG_PG4_OFFSET,
-+		.mask = BIT(6),
-+		.hpdev.nr = NVSW_NR_NONE,
-+	},
-+};
-+
-+static struct mlxreg_core_item nvsw_bmc_hid185_hotplug_items_data[] = {
-+	{
-+		.data = nvsw_bmc_hid185_pg1_events_items_data,
-+		.aggr_mask = NVSW_AGGR_MASK,
-+		.reg = NVSW_REG_PG1_OFFSET,
-+		.mask = GENMASK(7, 0),
-+		.count = ARRAY_SIZE(nvsw_bmc_hid185_pg1_events_items_data),
-+		.inversed = 1,
-+		.health = false,
-+		.non_sticky = true,
-+	},
-+	{
-+		.data = nvsw_bmc_hid180_pg2_events_items_data,
-+		.aggr_mask = NVSW_AGGR_MASK_COMEX,
-+		.reg = NVSW_REG_PG2_OFFSET,
-+		.mask = GENMASK(7, 0),
-+		.count = ARRAY_SIZE(nvsw_bmc_hid180_pg2_events_items_data),
-+		.inversed = 1,
-+		.health = false,
-+		.non_sticky = true,
-+	},
-+	{
-+		.data = nvsw_bmc_hid185_pg3_events_items_data,
-+		.aggr_mask = NVSW_AGGR_MASK,
-+		.reg = NVSW_REG_BRD4_OFFSET,
-+		.mask = GENMASK(7, 0),
-+		.count = ARRAY_SIZE(nvsw_bmc_hid185_pg3_events_items_data),
-+		.inversed = 1,
-+		.health = false,
-+		.non_sticky = true,
-+	},
-+	{
-+		.data = nvsw_bmc_hid185_pg4_events_items_data,
-+		.aggr_mask = NVSW_AGGR_MASK,
-+		.reg = NVSW_REG_PG3_OFFSET,
-+		.mask = NVSW_AGGR_MASK,
-+		.count = ARRAY_SIZE(nvsw_bmc_hid185_pg4_events_items_data),
-+		.inversed = 1,
-+		.health = false,
-+		.non_sticky = true,
-+	},
-+	{
-+		.data = nvsw_bmc_hid185_pg5_events_items_data,
-+		.aggr_mask = NVSW_AGGR_MASK,
-+		.reg = NVSW_REG_PG4_OFFSET,
-+		.mask = GENMASK(7, 0),
-+		.count = ARRAY_SIZE(nvsw_bmc_hid185_pg5_events_items_data),
-+		.inversed = 1,
-+		.health = false,
-+		.non_sticky = true,
-+	},
-+	{
-+		.data = nvsw_bmc_hid180_asic_items_data,
-+		.aggr_mask = NVSW_AGGR_MASK,
-+		.reg = NVSW_REG_ASIC1_HEALTH_OFFSET,
-+		.mask = NVSW_ASICS_MASK,
-+		.count = ARRAY_SIZE(nvsw_bmc_hid180_asic_items_data),
-+		.inversed = 0,
-+		.health = true,
-+	},
-+	{
-+		.data = nvsw_bmc_hid180_asic_temp_items_data,
-+		.aggr_mask = NVSW_AGGR_MASK,
-+		.reg = NVSW_REG_ASIC2_HEALTH_OFFSET,
-+		.mask = NVSW_ASICS_MASK,
-+		.count = ARRAY_SIZE(nvsw_bmc_hid180_asic_temp_items_data),
-+		.inversed = 0,
-+		.health = false,
-+	},
-+	{
-+		.data = nvsw_bmc_hid180_leakage_items_data,
-+		.aggr_mask = NVSW_AGGR_MASK,
-+		.reg = NVSW_REG_LEAK_OFFSET,
-+		.mask = GENMASK(1, 0),
-+		.count = ARRAY_SIZE(nvsw_bmc_hid180_leakage_items_data),
-+		.inversed = 0,
-+		.health = false,
-+	},
-+	{
-+		.data = nvsw_bmc_hid180_alarms_items_data,
-+		.aggr_mask = NVSW_AGGR_MASK,
-+		.reg = NVSW_REG_BRD1_OFFSET,
-+		.mask = GENMASK(7, 0),
-+		.count = ARRAY_SIZE(nvsw_bmc_hid180_alarms_items_data),
-+		.inversed = 0,
-+		.health = false,
-+	},
-+	{
-+		.data = nvsw_bmc_hid180_alarms2_items_data,
-+		.aggr_mask = NVSW_AGGR_MASK_COMEX,
-+		.reg = NVSW_REG_HEALTH_OFFSET,
-+		.mask = GENMASK(3, 0),
-+		.count = ARRAY_SIZE(nvsw_bmc_hid180_alarms2_items_data),
-+		.inversed = 0,
-+		.health = false,
-+	},
-+	{
-+		.data = nvsw_bmc_hid180_cpu_items_data,
-+		.aggr_mask = NVSW_AGGR_MASK,
-+		.reg = NVSW_REG_BRD2_OFFSET,
-+		.mask = GENMASK(4, 2),
-+		.count = ARRAY_SIZE(nvsw_bmc_hid180_cpu_items_data),
-+		.inversed = 0,
-+		.health = false,
-+	},
-+	{
-+		.data = nvsw_bmc_hid180_vr1_pwr_alert_items_data,
-+		.aggr_mask = NVSW_AGGR_MASK,
-+		.reg = NVSW_REG_VR1_ALERT_OFFSET,
-+		.mask = GENMASK(7, 0),
-+		.count = ARRAY_SIZE(nvsw_bmc_hid180_vr1_pwr_alert_items_data),
-+		.inversed = 0,
-+		.health = false,
-+	},
-+	{
-+		.data = nvsw_bmc_hid180_vr2_pwr_alert_items_data,
-+		.aggr_mask = NVSW_AGGR_MASK,
-+		.reg = NVSW_REG_VR2_ALERT_OFFSET,
-+		.mask = GENMASK(7, 0),
-+		.count = ARRAY_SIZE(nvsw_bmc_hid180_vr2_pwr_alert_items_data),
-+		.inversed = 0,
-+		.health = false,
-+	},
-+	{
-+		.data = nvsw_bmc_hid180_erot_error_items_data,
-+		.aggr_mask = NVSW_AGGR_MASK,
-+		.reg = NVSW_REG_EROT_ERR_OFFSET,
-+		.mask = BIT(0),
-+		.count = ARRAY_SIZE(nvsw_bmc_hid180_erot_error_items_data),
-+		.inversed = 1,
-+		.health = false,
-+	},
-+	{
-+		.data = nvsw_bmc_hid162_events_items_data,
-+		.aggr_mask = NVSW_AGGR_MASK,
-+		.reg = NVSW_REG_PWRB_OFFSET,
-+		.mask = NVSW_PWR_BUTTON_MASK | NVSW_AMB_TEMP_SENSE_MASK |
-+			NVSW_GRACEFUL_POWER_OFF_MASK | NVSW_CPU_POWER_OFF_READY_MASK |
-+			NVSW_CPU_RESET_MASK | NVSW_APML_SMB_ALERT_MASK |
-+			NVSW_CPU_UNEXP_POWER_OFF_MASK | NVSW_UID_PUSH_BUTTON_MASK,
-+		.count = ARRAY_SIZE(nvsw_bmc_hid162_events_items_data),
-+		.inversed = 1,
-+		.health = false,
-+		.non_sticky = true,
-+	},
-+	{
-+		.data = nvsw_bmc_hid162_cartridge_items_data,
-+		.aggr_mask = NVSW_AGGR_MASK,
-+		.reg = NVSW_REG_FRU1_OFFSET,
-+		.mask = NVSW_REG_FRU1_MASK,
-+		.count = ARRAY_SIZE(nvsw_bmc_hid162_cartridge_items_data),
-+		.inversed = 0,
-+		.health = false,
-+	},
-+};
-+
-+static
-+struct mlxreg_core_hotplug_platform_data nvsw_bmc_hid185_hotplug = {
-+	.items = nvsw_bmc_hid185_hotplug_items_data,
-+	.count = ARRAY_SIZE(nvsw_bmc_hid185_hotplug_items_data),
-+	.cell = NVSW_REG_AGGR_OFFSET,
-+	.mask = NVSW_AGGR_MASK | NVSW_AGGR_MASK_COMEX,
-+	.cell_low = NVSW_REG_AGGRLO_OFFSET,
-+	.mask_low = GENMASK(6, 0),
-+	.deferred_nr = 5,
 +};
 +
 +/* Platform register access data. */
@@ -2229,13 +1799,7 @@ index 000000000..3c70e2979
 +		.mode = 0444,
 +	},
 +	{
-+		.label = "reset_cpu",
-+		.reg = NVSW_REG_RESET_CAUSE_OFFSET,
-+		.mask = GENMASK(7, 0) & ~BIT(4),
-+		.mode = 0444,
-+	},
-+	{
-+		.label = "reset_pwr_button",
++		.label = "reset_pwr_button_or_leak_con",
 +		.reg = NVSW_REG_RESET_CAUSE_OFFSET,
 +		.mask = GENMASK(7, 0) & ~BIT(5),
 +		.mode = 0444,
@@ -2424,12 +1988,6 @@ index 000000000..3c70e2979
 +		.mode = 0444,
 +	},
 +	{
-+		.label = "cpld3_version",
-+		.reg = NVSW_REG_CPLD3_VER_OFFSET,
-+		.bit = GENMASK(7, 0),
-+		.mode = 0444,
-+	},
-+	{
 +		.label = "cpld1_pn",
 +		.reg = NVSW_REG_CPLD1_PN_OFFSET,
 +		.bit = GENMASK(15, 0),
@@ -2444,13 +2002,6 @@ index 000000000..3c70e2979
 +		.regnum = 2,
 +	},
 +	{
-+		.label = "cpld3_pn",
-+		.reg = NVSW_REG_CPLD3_PN_OFFSET,
-+		.bit = GENMASK(15, 0),
-+		.mode = 0444,
-+		.regnum = 2,
-+	},
-+	{
 +		.label = "cpld1_version_min",
 +		.reg = NVSW_REG_CPLD1_MVER_OFFSET,
 +		.bit = GENMASK(7, 0),
@@ -2459,12 +2010,6 @@ index 000000000..3c70e2979
 +	{
 +		.label = "cpld2_version_min",
 +		.reg = NVSW_REG_CPLD2_MVER_OFFSET,
-+		.bit = GENMASK(7, 0),
-+		.mode = 0444,
-+	},
-+	{
-+		.label = "cpld3_version_min",
-+		.reg = NVSW_REG_CPLD3_MVER_OFFSET,
 +		.bit = GENMASK(7, 0),
 +		.mode = 0444,
 +	},
@@ -2491,30 +2036,6 @@ index 000000000..3c70e2979
 +		.label = "pwr_converter_prog_en",
 +		.reg = NVSW_REG_GP7_OFFSET,
 +		.mask = GENMASK(7, 0) & ~BIT(0),
-+		.mode = 0644,
-+	},
-+	{
-+		.label = "graceful_power_off",
-+		.reg = NVSW_REG_GP7_OFFSET,
-+		.mask = GENMASK(7, 0) & ~BIT(3),
-+		.mode = 0644,
-+	},
-+	{
-+		.label = "bmc_perst_en",
-+		.reg = NVSW_REG_GP7_OFFSET,
-+		.mask = GENMASK(7, 0) & ~BIT(4),
-+		.mode = 0644,
-+	},
-+	{
-+		.label = "stby_pwr_en_unmask",
-+		.reg = NVSW_REG_GP7_OFFSET,
-+		.mask = GENMASK(7, 0) & ~BIT(6),
-+		.mode = 0644,
-+	},
-+	{
-+		.label = "i3c_mux_sel",
-+		.reg = NVSW_REG_GP7_OFFSET,
-+		.mask = GENMASK(7, 0) & ~BIT(7),
 +		.mode = 0644,
 +	},
 +	{
@@ -2555,22 +2076,16 @@ index 000000000..3c70e2979
 +		.mode = 0644,
 +	},
 +	{
-+		.label = "pwr_button_halt",
-+		.reg = NVSW_REG_GP1_OFFSET,
-+		.mask = GENMASK(7, 0) & ~BIT(1),
-+		.mode = 0644,
-+	},
-+	{
 +		.label = "pwr_cycle",
 +		.reg = NVSW_REG_GP1_OFFSET,
 +		.mask = GENMASK(7, 0) & ~BIT(2),
-+		.mode = 0200,
++		.mode = 0244,
 +	},
 +	{
 +		.label = "pwr_down",
 +		.reg = NVSW_REG_GP1_OFFSET,
 +		.mask = GENMASK(7, 0) & ~BIT(3),
-+		.mode = 0644,
++		.mode = 0200,
 +	},
 +	{
 +		.label = "aux_pwr_cycle",
@@ -2604,7 +2119,7 @@ index 000000000..3c70e2979
 +		.mode = 0644,
 +	},
 +	{
-+		.label = "erot_cpu_reset",
++		.label = "cpu_erot_reset",
 +		.reg = NVSW_REG_RESET_GP2_OFFSET,
 +		.mask = GENMASK(7, 0) & ~BIT(5),
 +		.mode = 0644,
@@ -2618,26 +2133,8 @@ index 000000000..3c70e2979
 +	{
 +		.label = "mcu2_reset",
 +		.reg = NVSW_REG_RESET_GP2_OFFSET,
-+		.mask = GENMASK(7, 0) & ~BIT(7),
-+		.mode = 0644,
-+	},
-+	{
-+		.label = "platform_reset",
-+		.reg = NVSW_REG_RESET_GP1_OFFSET,
-+		.mask = GENMASK(7, 0) & ~BIT(2),
-+		.mode = 0200,
-+	},
-+	{
-+		.label = "cpld_phy_reset",
-+		.reg = NVSW_REG_RESET_GP1_OFFSET,
-+		.mask = GENMASK(7, 0) & ~BIT(5),
-+		.mode = 0200,
-+	},
-+	{
-+		.label = "tpm_reset",
-+		.reg = NVSW_REG_RESET_GP1_OFFSET,
 +		.mask = GENMASK(7, 0) & ~BIT(6),
-+		.mode = 0200,
++		.mode = 0644,
 +	},
 +	{
 +		.label = "reset_long_pb",
@@ -2682,6 +2179,24 @@ index 000000000..3c70e2979
 +		.mode = 0444,
 +	},
 +	{
++		.label = "reset_from_cpld",
++		.reg = NVSW_REG_RESET_CAUSE1_OFFSET,
++		.mask = GENMASK(7, 0) & ~BIT(2),
++		.mode = 0444,
++	},
++	{
++		.label = "reset_comex_pwr_fail",
++		.reg = NVSW_REG_RESET_CAUSE1_OFFSET,
++		.mask = GENMASK(7, 0) & ~BIT(3),
++		.mode = 0444,
++	},
++	{
++		.label = "reset_platform",
++		.reg = NVSW_REG_RESET_CAUSE1_OFFSET,
++		.mask = GENMASK(7, 0) & ~BIT(4),
++		.mode = 0444,
++	},
++	{
 +		.label = "reset_soc",
 +		.reg = NVSW_REG_RESET_CAUSE1_OFFSET,
 +		.mask = GENMASK(7, 0) & ~BIT(5),
@@ -2689,14 +2204,8 @@ index 000000000..3c70e2979
 +	},
 +	{
 +		.label = "reset_erot",
-+		.reg = NVSW_REG_RESET_CAUSE1_OFFSET,
-+		.mask = GENMASK(7, 0) & ~BIT(6),
-+		.mode = 0444,
-+	},
-+	{
-+		.label = "leak_con",
-+		.reg = NVSW_REG_RESET_CAUSE1_OFFSET,
-+		.mask = GENMASK(7, 0) & ~BIT(7),
++		.reg = NVSW_REG_RESET_CAUSE2_OFFSET,
++		.mask = GENMASK(7, 0) & ~BIT(0),
 +		.mode = 0444,
 +	},
 +	{
@@ -2712,9 +2221,15 @@ index 000000000..3c70e2979
 +		.mode = 0444,
 +	},
 +	{
-+		.label = "reset_cpu_thermal",
++		.label = "reset_comex_thermal",
 +		.reg = NVSW_REG_RESET_CAUSE2_OFFSET,
 +		.mask = GENMASK(7, 0) & ~BIT(3),
++		.mode = 0444,
++	},
++	{
++		.label = "reset_comex_power",
++		.reg = NVSW_REG_RESET_CAUSE2_OFFSET,
++		.mask = GENMASK(7, 0) & ~BIT(4),
 +		.mode = 0444,
 +	},
 +	{
@@ -2746,12 +2261,6 @@ index 000000000..3c70e2979
 +		.reg = NVSW_REG_GP4_RO_OFFSET,
 +		.mask = GENMASK(1, 0),
 +		.bit = 1,
-+		.mode = 0444,
-+	},
-+	{
-+		.label = "tpm_present",
-+		.reg = NVSW_REG_GP4_RO_OFFSET,
-+		.mask = GENMASK(7, 0) & ~BIT(3),
 +		.mode = 0444,
 +	},
 +	{
@@ -2877,6 +2386,12 @@ index 000000000..3c70e2979
 +		.reg = NVSW_REG_CONFIG3_OFFSET,
 +		.bit = GENMASK(7, 0),
 +		.mode = 0444,
++	},
++	{
++		.label = "graseful_pwr_off",
++		.reg = NVSW_REG_GP7_OFFSET,
++		.mask = GENMASK(7, 0) & ~BIT(3),
++		.mode = 0644,
 +	},
 +};
 +
@@ -3160,7 +2675,7 @@ index 000000000..3c70e2979
 +	}
 +}
 +
-+/* Callback to set initial values for specific registers. */
++/* Callbact to set initial values for specific registers. */
 +static int nvsw_bmc_hid162_set_reg_default(struct regmap *regmap)
 +{
 +	u32 regval;
@@ -3173,11 +2688,6 @@ index 000000000..3c70e2979
 +	return regmap_write(regmap, NVSW_REG_GP6_OFFSET, regval | NVSW_REG_RESET_MASK);
 +}
 +
-+static int nvsw_bmc_hid180_set_reg_default(struct regmap *regmap)
-+{
-+	return regmap_write(regmap, NVSW_REG_AGGRCO_MASK_OFFSET, GENMASK(5, 0));
-+}
-+
 +/* Callback is used to indicate that all adapter devices has been created. */
 +static int
 +nvsw_bmc_hid162_completion_notify(void *handle, struct i2c_adapter *parent,
@@ -3186,19 +2696,6 @@ index 000000000..3c70e2979
 +	/* struct nvsw_core *nvsw_core = handle; */
 +
 +	return 0;
-+}
-+
-+static int nvsw_bmc_hid162_mux_access_grant(void *handle)
-+{
-+	struct nvsw_core *nvsw_core = handle;
-+	u32 regval;
-+	int err;
-+
-+	err = regmap_read(nvsw_core->regmap, NVSW_REG_GP1_OFFSET, &regval);
-+	if (err)
-+		return err;
-+
-+	return regval & NVSW_MASTER_MASK;
 +}
 +
 +static int nvsw_bmc_hid162_platform_data_init(struct nvsw_core *nvsw_core)
@@ -3212,7 +2709,6 @@ index 000000000..3c70e2979
 +		mux_data[i] = &nvsw_bmc_hid162_mux_data[i];
 +		mux_data[i]->handle = nvsw_core;
 +		mux_data[i]->completion_notify = nvsw_bmc_hid162_completion_notify;
-+		mux_data[i]->mux_access_grant = nvsw_bmc_hid162_mux_access_grant;
 +		mux_brdinfo[i] = &nvsw_bmc_hid162_mux_brdinfo;
 +		mux_brdinfo[i]->platform_data = mux_data[i];
 +	}
@@ -3239,7 +2735,6 @@ index 000000000..3c70e2979
 +		mux_data[i] = &nvsw_bmc_hid176_mux_data[i];
 +		mux_data[i]->handle = nvsw_core;
 +		mux_data[i]->completion_notify = nvsw_bmc_hid162_completion_notify;
-+		mux_data[i]->mux_access_grant = nvsw_bmc_hid162_mux_access_grant;
 +		mux_brdinfo[i] = &nvsw_bmc_hid162_mux_brdinfo;
 +		mux_brdinfo[i]->platform_data = mux_data[i];
 +	}
@@ -3265,7 +2760,6 @@ index 000000000..3c70e2979
 +		mux_data[i] = &nvsw_bmc_hid176_mux_data[i];
 +		mux_data[i]->handle = nvsw_core;
 +		mux_data[i]->completion_notify = nvsw_bmc_hid162_completion_notify;
-+		mux_data[i]->mux_access_grant = nvsw_bmc_hid162_mux_access_grant;
 +		mux_brdinfo[i] = &nvsw_bmc_hid162_mux_brdinfo;
 +		mux_brdinfo[i]->platform_data = mux_data[i];
 +	}
@@ -3291,7 +2785,6 @@ index 000000000..3c70e2979
 +		mux_data[i] = &nvsw_bmc_hid180_mux_data[i];
 +		mux_data[i]->handle = nvsw_core;
 +		mux_data[i]->completion_notify = nvsw_bmc_hid162_completion_notify;
-+		mux_data[i]->mux_access_grant = nvsw_bmc_hid162_mux_access_grant;
 +		mux_brdinfo[i] = &nvsw_bmc_hid162_mux_brdinfo;
 +		mux_brdinfo[i]->platform_data = mux_data[i];
 +	}
@@ -3301,33 +2794,7 @@ index 000000000..3c70e2979
 +	nvsw_core->hotplug_data = &nvsw_bmc_hid180_hotplug;
 +	nvsw_core->mux_init = nvsw_bmc_hid162_mux_topology_init;
 +	nvsw_core->mux_exit = nvsw_bmc_hid162_mux_topology_exit;
-+	nvsw_core->set_reg_default = nvsw_bmc_hid180_set_reg_default;
-+
-+	return 0;
-+}
-+
-+static int nvsw_bmc_hid185_platform_data_init(struct nvsw_core *nvsw_core)
-+{
-+	int i;
-+
-+	/* Set system configuration. */
-+	nvsw_core->hid = HID180;
-+	nvsw_core->mux_num = ARRAY_SIZE(nvsw_bmc_hid185_mux_data);
-+	for (i = 0; i < nvsw_core->mux_num; i++) {
-+		mux_data[i] = &nvsw_bmc_hid185_mux_data[i];
-+		mux_data[i]->handle = nvsw_core;
-+		mux_data[i]->completion_notify = nvsw_bmc_hid162_completion_notify;
-+		mux_brdinfo[i] = &nvsw_bmc_hid162_mux_brdinfo;
-+		mux_brdinfo[i]->platform_data = mux_data[i];
-+	}
-+	mux_data[0]->mux_access_grant = nvsw_bmc_hid162_mux_access_grant;
-+
-+	nvsw_core->regio_data = &nvsw_bmc_hid180_regio;
-+	nvsw_core->led_data = &nvsw_bmc_hid177_led;
-+	nvsw_core->hotplug_data = &nvsw_bmc_hid185_hotplug;
-+	nvsw_core->mux_init = nvsw_bmc_hid162_mux_topology_init;
-+	nvsw_core->mux_exit = nvsw_bmc_hid162_mux_topology_exit;
-+	nvsw_core->set_reg_default = nvsw_bmc_hid180_set_reg_default;
++	nvsw_core->set_reg_default = nvsw_bmc_hid162_set_reg_default;
 +
 +	return 0;
 +}
@@ -3343,8 +2810,6 @@ index 000000000..3c70e2979
 +		return nvsw_bmc_hid177_platform_data_init(nvsw_core);
 +	case HID180:
 +		return nvsw_bmc_hid180_platform_data_init(nvsw_core);
-+	case HID185:
-+		return nvsw_bmc_hid185_platform_data_init(nvsw_core);
 +	default:
 +		return -ENODEV;
 +	}
@@ -3368,8 +2833,6 @@ index 000000000..3c70e2979
 +		type = HID177;
 +	else if (of_device_is_compatible(np, "nvidia,hid180"))
 +		type = HID180;
-+	else if (of_device_is_compatible(np, "nvidia,hid185"))
-+		type = HID185;
 +	else
 +		return -ENODEV;
 +
@@ -4130,10 +3593,10 @@ index 000000000..0dae7e076
 +MODULE_LICENSE("Dual BSD/GPL");
 diff --git a/drivers/platform/mellanox/nvsw-host-l1.c b/drivers/platform/mellanox/nvsw-host-l1.c
 new file mode 100644
-index 000000000..83d305080
+index 000000000..46022cb99
 --- /dev/null
 +++ b/drivers/platform/mellanox/nvsw-host-l1.c
-@@ -0,0 +1,770 @@
+@@ -0,0 +1,744 @@
 +// SPDX-License-Identifier: GPL-2.0+
 +/*
 + * Nvidia BMC platform driver
@@ -4223,12 +3686,6 @@ index 000000000..83d305080
 +		.mode = 0444,
 +	},
 +	{
-+		.label = "cpld3_version",
-+		.reg = NVSW_REG_CPLD3_VER_OFFSET,
-+		.bit = GENMASK(7, 0),
-+		.mode = 0444,
-+	},
-+	{
 +		.label = "cpld1_pn",
 +		.reg = NVSW_REG_CPLD1_PN_OFFSET,
 +		.bit = GENMASK(15, 0),
@@ -4243,13 +3700,6 @@ index 000000000..83d305080
 +		.regnum = 2,
 +	},
 +	{
-+		.label = "cpld3_pn",
-+		.reg = NVSW_REG_CPLD3_PN_OFFSET,
-+		.bit = GENMASK(15, 0),
-+		.mode = 0444,
-+		.regnum = 2,
-+	},
-+	{
 +		.label = "cpld1_version_min",
 +		.reg = NVSW_REG_CPLD1_MVER_OFFSET,
 +		.bit = GENMASK(7, 0),
@@ -4258,12 +3708,6 @@ index 000000000..83d305080
 +	{
 +		.label = "cpld2_version_min",
 +		.reg = NVSW_REG_CPLD2_MVER_OFFSET,
-+		.bit = GENMASK(7, 0),
-+		.mode = 0444,
-+	},
-+	{
-+		.label = "cpld3_version_min",
-+		.reg = NVSW_REG_CPLD3_MVER_OFFSET,
 +		.bit = GENMASK(7, 0),
 +		.mode = 0444,
 +	},
@@ -4827,13 +4271,6 @@ index 000000000..83d305080
 +		.matches = {
 +			DMI_MATCH(DMI_BOARD_NAME, "VMOD0023"),
 +			DMI_EXACT_MATCH(DMI_PRODUCT_SKU, "HI180"),
-+		},
-+	},
-+	{
-+		.callback = nvsw_host_dmi_l1_switch_matched,
-+		.matches = {
-+			DMI_MATCH(DMI_BOARD_NAME, "VMOD0023"),
-+			DMI_EXACT_MATCH(DMI_PRODUCT_SKU, "HI185"),
 +		},
 +	},
 +	{ }
@@ -6713,10 +6150,10 @@ index 000000000..449ba5ffd
 +
 diff --git a/drivers/platform/mellanox/nvsw.h b/drivers/platform/mellanox/nvsw.h
 new file mode 100644
-index 000000000..91bdbc2ce
+index 000000000..2e9b505f7
 --- /dev/null
 +++ b/drivers/platform/mellanox/nvsw.h
-@@ -0,0 +1,297 @@
+@@ -0,0 +1,296 @@
 +/* SPDX-License-Identifier: GPL-2.0+
 + *
 + * Nvidia BMC platform driver
@@ -6949,7 +6386,6 @@ index 000000000..91bdbc2ce
 +	HID180,
 +	HID181,
 +	HID182,
-+	HID185,
 +	HID193,
 +};
 +

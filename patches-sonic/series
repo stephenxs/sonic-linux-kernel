@@ -114,11 +114,10 @@ driver-i2c-smbus-add-disable_spd-module-parameter.patch
 0054-i2c-asf-Introduce-MCTP-support-over-ASF-controller.patch
 0054-1-platform-mellanox-Downstream-Add-support-for-new-Nvi.patch
 0055-platform-mellanox-Downstream-Add-support-DGX-flavor-.patch
-0055-1-platform-mellanox-mlx-platform-Add-support-DGX-flavo.patch
 0056-hwmon-pmbus-mp2845-Add-support-for-MP2845-device.patch
 0057-hwmon-pmbus-mp5926-Add-support-for-MP5926-device.patch
 0058-PCI-DOE-Poll-DOE-Busy-bit-for-up-to-1-second-in-pci.patch
-0059-hwmon-pmbus-xdpe1a2g7b-Add-support-for-XDPE1A2G7B-5B.patch
+0059-leds-mlxreg-Provide-conversion-for-hardware-LED-colo.patch
 8000-mlxsw-Use-weak-reverse-dependencies-for-firmware-fla.patch
 8002-mlxsw-i2c-SONIC-ISSU-Prevent-transaction-execution-f.patch
 8003-mlxsw-minimal-Downstream-Ignore-error-reading-SPAD-r.patch
